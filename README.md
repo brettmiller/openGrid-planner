@@ -4,6 +4,8 @@ A web-based planning tool for designing OpenGrid layouts with precision. Optimiz
 
 *Initially inspired by and built upon [this Claude artifact](https://claude.ai/public/artifacts/6e5392ba-b387-4203-a8f1-577336c0b0b8), significantly expanded with additional features and optimization modes.*
 
+###### This was entirely created with Claude, primarly Sonnet 4.5
+
 ## Features
 
 - **Two Layout Modes**
