@@ -18,7 +18,7 @@ A web-based planning tool for designing OpenGrid layouts with precision. Optimiz
   - A1 Mini (180×180×180mm)
   - A1 (256×256×256mm)
   - P1P, P1S, X1 Carbon (256×256×256mm)
-  - Custom bed size option
+  - Custom bed size option (length and width can be specified in mm)
 
 - **Dual Unit Support**
   - mm and inch measurements
@@ -41,29 +41,6 @@ A web-based planning tool for designing OpenGrid layouts with precision. Optimiz
 
 ## Usage
 
-### Local Development
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/brettmiller/opengrid-planner.git
-cd opengrid-planner
-```
-
-1. Start a local web server:
-
-```bash
-python3 -m http.server 8080
-```
-
-1. Open your browser to:
-
-```text
-http://localhost:8080/opengrid-planner.html
-```
-
-### Quick Start
-
 1. **Enter Wall Dimensions**: Input width and height in mm or inches
 1. **Select Your Printer**: Choose your BambuLab printer model
 1. **Choose Layout Mode**:
@@ -80,13 +57,6 @@ When printing tiles that use the full bed size (9×9 grids or similar):
 - **Disable Skirt/Brim**: Allows for larger parts on the plate
 - **Calibrations**: May need to disable auto-flow calibration for extra room
 - **Check Z-Hop**: Ensure Z-hop setting doesn't exceed 256mm height limit
-
-## OpenGrid Specifications
-
-- **Grid Size**: 28mm (Gridfinity compatible)
-- **Regular Tiles**: 3m4s per grid square
-- **Lite Tiles**: 1m38s per grid square
-- **Connection System**: Multiconnect connectors
 
 ## Technical Details
 
