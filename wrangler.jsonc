@@ -1,5 +1,7 @@
 {
   "name": "opengrid-planner",
   "compatibility_date": "2026-02-15",
-  "main": "index.html"
+  "assets": {
+    "directory": "./"
+  }
 }
