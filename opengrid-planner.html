@@ -1824,10 +1824,74 @@
                 }
             }
             
+            // Calculate connectors based on tile sizes
+            // Joints along 2-grid edges have 1 connector, joints along 3+ grid edges have 2 connectors
+            let connectors = 0;
+            if (selectedOption.singleSize) {
+                // Single size: calculate based on which edge the joint spans
+                const numX = selectedOption.numX;
+                const numY = selectedOption.numY;
+                
+                // Column joints (vertical lines between tiles) - span the HEIGHT of tiles
+                const columnJoints = (numX - 1) * numY;
+                const columnConnectors = (selectedOption.height === 2) ? 1 : 2;
+                connectors += columnJoints * columnConnectors;
+                
+                // Row joints (horizontal lines between tiles) - span the WIDTH of tiles
+                const rowJoints = (numY - 1) * numX;
+                const rowConnectors = (selectedOption.width === 2) ? 1 : 2;
+                connectors += rowJoints * rowConnectors;
+            } else {
+                // Multiple sizes: calculate based on which edge each joint spans
+                const numX = selectedOption.numX;
+                const numY = selectedOption.numY;
+                
+                // Column joints (vertical lines between main tiles) - span HEIGHT
+                const mainColumnJoints = (numX - 1) * numY;
+                const mainColumnConnectors = (selectedOption.height === 2) ? 1 : 2;
+                connectors += mainColumnJoints * mainColumnConnectors;
+                
+                // Row joints (horizontal lines between main tiles) - span WIDTH
+                const mainRowJoints = (numY - 1) * numX;
+                const mainRowConnectors = (selectedOption.width === 2) ? 1 : 2;
+                connectors += mainRowJoints * mainRowConnectors;
+                
+                // Joints with edge tiles (if present)
+                if (selectedOption.edgeTilesX > 0) {
+                    // Main to edge X joints (vertical lines) - span HEIGHT
+                    connectors += numY * mainColumnConnectors;
+                    // Joints between edge X tiles (horizontal lines) - span edgeX
+                    const edgeXConnectors = (selectedOption.edgeX === 2) ? 1 : 2;
+                    connectors += (numY - 1) * edgeXConnectors;
+                }
+                
+                if (selectedOption.edgeTilesY > 0) {
+                    // Main to edge Y joints (horizontal lines) - span WIDTH
+                    connectors += numX * mainRowConnectors;
+                    // Joints between edge Y tiles (vertical lines) - span edgeY
+                    const edgeYConnectors = (selectedOption.edgeY === 2) ? 1 : 2;
+                    connectors += (numX - 1) * edgeYConnectors;
+                }
+                
+                // Corner joints (if present)
+                if (selectedOption.hasCorner) {
+                    // Corner to edge X (horizontal line) - span edgeX
+                    if (selectedOption.edgeTilesX > 0) {
+                        const cornerEdgeXConnectors = (selectedOption.edgeX === 2) ? 1 : 2;
+                        connectors += cornerEdgeXConnectors;
+                    }
+                    // Corner to edge Y (vertical line) - span edgeY
+                    if (selectedOption.edgeTilesY > 0) {
+                        const cornerEdgeYConnectors = (selectedOption.edgeY === 2) ? 1 : 2;
+                        connectors += cornerEdgeYConnectors;
+                    }
+                }
+            }
+            
             html += `
             <div class="result-item">
-                <span class="item-name">Multiconnect Connectors</span>
-                <span class="item-quantity">${selectedOption.totalTiles * 2}</span>
+                <span class="item-name">Multiconnect Connectors <span style="font-size: 0.8em; color: #7d8590;">(1-2 per joint)</span></span>
+                <span class="item-quantity">${connectors}</span>
             </div>
             `;
             
