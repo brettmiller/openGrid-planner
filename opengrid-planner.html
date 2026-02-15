@@ -145,6 +145,15 @@
             font-size: 1.1em;
         }
         
+        .modal-content h4 {
+            color: #e6edf3;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            margin-left: 20px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+        
         .modal-content p, .modal-content li {
             color: #e6edf3;
             line-height: 1.6;
@@ -592,8 +601,8 @@
                 
                 <h3>3. Choose Layout Mode</h3>
                 
-                <p><strong>Auto Optimal Mode (Recommended)</strong></p>
-                <ol>
+                <h4>Auto Optimal Mode (Recommended)</h4>
+                <ol style="margin-left: 40px;">
                     <li>Select optimization type:
                         <ul>
                             <li><strong>Single tile size</strong>: All tiles identical - simpler to print, moderate coverage</li>
@@ -602,16 +611,17 @@
                     </li>
                     <li>Set tile size range (Min/Max grids)
                         <ul>
-                            <li>Leave at 2-9 for all options</li>
+                            <li>Leave at default range for all available options</li>
                             <li>Or narrow range (e.g., 6-9) to see only larger tiles</li>
+                            <li>Max depends on your printer's bed size</li>
                         </ul>
                     </li>
                     <li>Click <strong>Calculate Layout</strong></li>
                     <li>Click any of the 10 recommended options to preview it</li>
                 </ol>
                 
-                <p><strong>Manual Size Mode</strong></p>
-                <ol>
+                <h4>Manual Size Mode</h4>
+                <ol style="margin-left: 40px;">
                     <li>Enter exact tile dimensions (width × height in grids)</li>
                     <li>Choose optimization (single or multiple sizes)</li>
                     <li>Click <strong>Calculate Layout</strong></li>
@@ -631,7 +641,7 @@
                 </ul>
                 
                 <h2>Important Notes</h2>
-                <p><strong>Edge and Corner Tiles</strong>: When using Multiple sizes mode, edge and corner tiles can be positioned within the grid layout, not just at the edges. This flexibility may be necessary when the layout includes 1×N tiles (single-grid-wide tiles) since they may not be mountable otherwise.</p>
+                <p><strong>Edge and Corner Tiles</strong>: When using Multiple sizes mode, in real world use the edge and corner tiles could be positioned within the grid layout, not just at the edges. This flexibility may be necessary when the layout includes 1×N tiles (single-grid-wide tiles) since they may not be mountable otherwise.</p>
                 
                 <h2 id="fullBedTips">Tips for Full Bed Usage</h2>
                 <p>When printing tiles that use the full bed size (9×9 grids or similar), follow these tips for best results:</p>
