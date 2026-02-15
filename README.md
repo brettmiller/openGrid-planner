@@ -44,31 +44,34 @@ A web-based planning tool for designing OpenGrid layouts with precision. Optimiz
 ### Local Development
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/brettmiller/opengrid-planner.git
 cd opengrid-planner
 ```
 
-2. Start a local web server:
+1. Start a local web server:
+
 ```bash
 python3 -m http.server 8080
 ```
 
-3. Open your browser to:
-```
+1. Open your browser to:
+
+```text
 http://localhost:8080/opengrid-planner.html
 ```
 
 ### Quick Start
 
 1. **Enter Wall Dimensions**: Input width and height in mm or inches
-2. **Select Your Printer**: Choose your BambuLab printer model
-3. **Choose Layout Mode**: 
+1. **Select Your Printer**: Choose your BambuLab printer model
+1. **Choose Layout Mode**:
    - Use Auto Optimal to see top recommendations
    - Use Manual Size for specific tile dimensions
-4. **Select Tile Type**: Regular or Lite
-5. **Calculate**: Click "Calculate Layout" to generate results
-6. **Review**: Check the visual preview and parts list
+1. **Select Tile Type**: Regular or Lite
+1. **Calculate**: Click "Calculate Layout" to generate results
+1. **Review**: Check the visual preview and parts list
 
 ## Tips for Full Bed Usage
 
@@ -95,6 +98,7 @@ When printing tiles that use the full bed size (9×9 grids or similar):
 ## Browser Compatibility
 
 Works in all modern browsers:
+
 - Chrome/Edge (recommended)
 - Firefox
 - Safari
