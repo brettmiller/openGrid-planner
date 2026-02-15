@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGrid Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #161b22;
+            border-radius: 12px;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+            overflow: hidden;
+            border: 1px solid #30363d;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: #e6edf3;
+            padding: 10px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .help-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 30px;
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid #7c3aed;
+            color: #a855f7;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+        
+        .help-btn:hover {
+            background: rgba(124, 58, 237, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 40px;
+        }
+        
+        .modal-content {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #7d8590;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            line-height: 1;
+        }
+        
+        .modal-close:hover {
+            color: #e6edf3;
+        }
+        
+        .modal-content h1 {
+            color: #f0f6fc;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .modal-content h2 {
+            color: #f0f6fc;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+        
+        .modal-content h3 {
+            color: #a855f7;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .modal-content p, .modal-content li {
+            color: #e6edf3;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .modal-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-content strong {
+            color: #a855f7;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+        
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1.1em;
+            color: #7d8590;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 0;
+            min-height: 700px;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #0d1117;
+            border-right: 1px solid #30363d;
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #f0f6fc;
+            font-size: 0.9em;
+        }
+        
+        .converter-tool {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .converter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        
+        .converter-header h3 {
+            color: #7d8590;
+            margin: 0;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .converter-toggle {
+            color: #7d8590;
+            font-size: 0.7em;
+            transition: transform 0.2s;
+        }
+        
+        .converter-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .converter-inputs {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #30363d;
+        }
+        
+        .converter-inputs.expanded {
+            display: flex;
+        }
+        
+        .converter-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8em;
+        }
+        
+        .converter-row input {
+            flex: 1;
+            padding: 6px 8px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #e6edf3;
+            font-size: 0.8em;
+            min-width: 0;
+        }
+        
+        .converter-row span {
+            color: #7d8590;
+            white-space: nowrap;
+            font-size: 0.75em;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .input-row span {
+            color: #7d8590;
+            flex-shrink: 0;
+        }
+        
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #21262d;
+            color: #e6edf3;
+            width: 100%;
+        }
+        
+        input[type="checkbox"],
+        input[type="radio"] {
+            width: auto;
+            padding: 0;
+            background: none;
+            border: none;
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e6edf3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+            padding-right: 28px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .dimension-input {
+            width: 90px;
+            flex-shrink: 0;
+        }
+        
+        .unit-select {
+            width: 60px;
+            flex-shrink: 0;
+            padding: 10px 26px 10px 6px;
+        }
+        
+        .layout-mode {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .layout-option {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #21262d;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 0.8em;
+        }
+        
+        .layout-option.active {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-color: #7c3aed;
+            color: white;
+        }
+        
+        .tile-size-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .tile-size-inputs input {
+            width: 60px;
+        }
+        
+        .tile-size-inputs span {
+            color: #7d8590;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
+        }
+        
+        .info-note {
+            background: #0c2d48;
+            border: 1px solid #1f6feb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #79c0ff;
+            line-height: 1.4;
+        }
+        
+        .results-panel {
+            padding: 10px 30px 30px 30px;
+            background: #161b22;
+            overflow-y: auto;
+        }
+        
+        .results-panel h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .optimal-results {
+            background: #0c2d48;
+            border: 1px solid #1f6feb;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .optimal-results h3 {
+            color: #79c0ff;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        
+        #optimalOptions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .optimal-option {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .optimal-option:hover {
+            background: #30363d;
+            border-color: #7c3aed;
+        }
+        
+        .optimal-option.selected {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.1);
+        }
+        
+        .option-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .option-size {
+            font-weight: 600;
+            color: #e6edf3;
+            font-size: 0.85em;
+        }
+        
+        .option-stats {
+            font-size: 0.75em;
+            color: #7d8590;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 10px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+        
+        .grid-preview {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin: 5px 0;
+            background: #0d1117;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 10px 10px 8px 10px;
+        }
+        
+        .results-list {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #30363d;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: #21262d;
+            border-radius: 6px;
+            border-left: 3px solid #7c3aed;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: #e6edf3;
+        }
+        
+        .item-quantity {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #7d8590;
+            font-style: italic;
+            padding: 40px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                border-right: none;
+                border-bottom: 1px solid #30363d;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>OpenGrid Planner</h1>
+            <p class="subtitle">Plan your OpenGrid layout with precision - Optimized for BambuLab printers</p>
+            <button class="help-btn" onclick="toggleHelp()">Help</button>
+        </div>
+        
+        <div class="modal-overlay" id="helpModal" onclick="closeHelpIfClickedOutside(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <button class="modal-close" onclick="toggleHelp()">×</button>
+                <h1>OpenGrid Planner - User Guide</h1>
+                
+                <h2>Getting Started</h2>
+                
+                <h3>1. Enter Your Wall Dimensions</h3>
+                <ul>
+                    <li>Input width and height in the "Surface or Wall Size" fields</li>
+                    <li>Select units: mm or inch</li>
+                    <li><strong>Tip</strong>: The tool auto-converts when switching units - your measurements stay accurate</li>
+                </ul>
+                
+                <h3>2. Select Your Printer</h3>
+                <ul>
+                    <li>Choose your BambuLab printer from the dropdown (A1 Mini, A1, P1P, P1S, X1 Carbon)</li>
+                    <li>Or select "Custom / Other" and enter your bed size in mm</li>
+                    <li><strong>Why it matters</strong>: Limits tile sizes to what fits on your print bed</li>
+                </ul>
+                
+                <h3>3. Choose Layout Mode</h3>
+                
+                <p><strong>Auto Optimal Mode (Recommended)</strong></p>
+                <ol>
+                    <li>Select optimization type:
+                        <ul>
+                            <li><strong>Single tile size</strong>: All tiles identical - simpler to print, moderate coverage</li>
+                            <li><strong>Multiple sizes (fill space)</strong>: Uses edge/corner tiles - better coverage, more variety</li>
+                        </ul>
+                    </li>
+                    <li>Set tile size range (Min/Max grids)
+                        <ul>
+                            <li>Leave at 2-9 for all options</li>
+                            <li>Or narrow range (e.g., 6-9) to see only larger tiles</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Calculate Layout</strong></li>
+                    <li>Click any of the 10 recommended options to preview it</li>
+                </ol>
+                
+                <p><strong>Manual Size Mode</strong></p>
+                <ol>
+                    <li>Enter exact tile dimensions (width × height in grids)</li>
+                    <li>Choose optimization (single or multiple sizes)</li>
+                    <li>Click <strong>Calculate Layout</strong></li>
+                </ol>
+                
+                <h3>4. Select Tile Type</h3>
+                <ul>
+                    <li><strong>Regular</strong>: Stronger, takes 3m4s per grid</li>
+                    <li><strong>Lite</strong>: Faster printing (1m38s per grid), uses less material</li>
+                </ul>
+                
+                <h3>5. Review Results</h3>
+                <ul>
+                    <li><strong>Summary stats</strong> show total tiles, coverage %, and print time</li>
+                    <li><strong>Visual preview</strong> shows how tiles fit on your wall</li>
+                    <li><strong>Parts list</strong> details exactly what to print</li>
+                </ul>
+                
+                <h2>Important Notes</h2>
+                <p><strong>Edge and Corner Tiles</strong>: When using Multiple sizes mode, edge and corner tiles can be positioned within the grid layout, not just at the edges. This flexibility may be necessary when the layout includes 1×N tiles (single-grid-wide tiles) since they may not be mountable otherwise.</p>
+                
+                <h2 id="fullBedTips">Tips for Full Bed Usage</h2>
+                <p>When printing tiles that use the full bed size (9×9 grids or similar), follow these tips for best results:</p>
+                <ul>
+                    <li><strong>Disable Skirt/Brim</strong>: Removing these allows for more, or larger, parts on the plate.</li>
+                    <li><strong>Calibrations</strong>: You may need to disable the auto-flow calibration to gain extra room.</li>
+                    <li><strong>Check Z-Hop</strong>: Ensure the Z-hop setting does not exceed the 256mm height limit.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="converter-tool">
+                    <div class="converter-header" onclick="toggleConverter()">
+                        <h3>Unit Converter</h3>
+                        <span class="converter-toggle">▼</span>
+                    </div>
+                    <div class="converter-inputs" id="converterInputs">
+                        <div class="converter-row">
+                            <input type="number" id="inchInput" placeholder="0" step="0.001">
+                            <span>inch =</span>
+                            <input type="number" id="mmOutput" placeholder="0" readonly>
+                            <span>mm</span>
+                        </div>
+                        <div class="converter-row">
+                            <input type="number" id="mmInput" placeholder="0" step="0.1">
+                            <span>mm =</span>
+                            <input type="number" id="inchOutput" placeholder="0" readonly>
+                            <span>inch</span>
+                        </div>
+                        <div class="converter-row">
+                            <input type="text" id="fractionInput" placeholder='e.g. 3 5/16"' style="flex: 2;">
+                            <span>=</span>
+                            <input type="number" id="decimalOutput" placeholder="0" readonly>
+                            <span>in</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>BambuLab Printer:</label>
+                    <select id="printer" onchange="toggleCustomBed()">
+                        <option value="custom">Custom / Other</option>
+                        <option value="a1mini">A1 Mini (180×180×180mm)</option>
+                        <option value="a1">A1 (256×256×256mm)</option>
+                        <option value="p1p">P1P (256×256×256mm)</option>
+                        <option value="p1s">P1S (256×256×256mm)</option>
+                        <option value="x1c" selected>X1 Carbon (256×256×256mm)</option>
+                    </select>
+                    <div id="customBedSize" style="display: none; margin-top: 10px;">
+                        <label style="font-size: 0.85em; margin-bottom: 6px;">Custom Bed Size (mm):</label>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="number" id="customBedWidth" placeholder="Width" value="300" min="50" style="width: 80px; padding: 8px;" onchange="updateGridLimits(true); if(currentMode === 'manual') validateManualTileSize();">
+                            <span style="color: #7d8590; font-size: 0.85em;">×</span>
+                            <input type="number" id="customBedHeight" placeholder="Height" value="300" min="50" style="width: 80px; padding: 8px;" onchange="updateGridLimits(true); if(currentMode === 'manual') validateManualTileSize();">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Surface or Wall Size:</label>
+                    <div class="input-row">
+                        <input type="number" id="wallWidth" class="dimension-input" value="600" step="0.1" onchange="calculate()">
+                        <span>×</span>
+                        <input type="number" id="wallHeight" class="dimension-input" value="300" step="0.1" onchange="calculate()">
+                        <select id="units" class="unit-select" onchange="convertUnits()">
+                            <option value="mm" selected>mm</option>
+                            <option value="inch">inch</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Layout Mode:</label>
+                    <div class="layout-mode">
+                        <div class="layout-option active" onclick="setMode('auto')" id="autoMode">
+                            Auto Optimal
+                        </div>
+                        <div class="layout-option" onclick="setMode('manual')" id="manualMode">
+                            Manual Size
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group" id="autoFilters">
+                    <label>Optimization:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; margin-left: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85em; font-weight: normal; cursor: pointer; flex: 1;">
+                            <input type="radio" name="optimization" value="single" checked onchange="calculate()">
+                            <span>Single tile size</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85em; font-weight: normal; cursor: pointer; flex: 1;">
+                            <input type="radio" name="optimization" value="multiple" onchange="calculate()">
+                            <span>Multiple sizes (fill space)</span>
+                        </label>
+                    </div>
+                    <label>Tile Size Range:</label>
+                    <div style="display: flex; gap: 8px; align-items: center; font-size: 0.85em;">
+                        <span style="color: #7d8590;">Min:</span>
+                        <input type="number" id="minGrids" value="2" min="2" max="9" style="width: 50px; padding: 6px 8px;" onchange="updateGridLimits(); calculate();">
+                        <span style="color: #7d8590;">Max:</span>
+                        <input type="number" id="maxGrids" value="9" min="2" max="9" style="width: 50px; padding: 6px 8px;" onchange="updateGridLimits(); calculate();">
+                        <span style="color: #7d8590;">grids</span>
+                    </div>
+                </div>
+                
+                <div class="control-group" id="manualTileSize" style="display: none;">
+                    <label>Tile Size:</label>
+                    <div class="tile-size-inputs">
+                        <input type="number" id="tileWidth" value="6" min="2" max="12" onchange="validateManualTileSize(); calculate();">
+                        <span>×</span>
+                        <input type="number" id="tileHeight" value="6" min="2" max="12" onchange="validateManualTileSize(); calculate();">
+                        <span>grids</span>
+                    </div>
+                    <label style="margin-top: 12px; margin-bottom: 8px;">Optimization:</label>
+                    <div style="display: flex; gap: 10px; margin-left: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85em; font-weight: normal; cursor: pointer; flex: 1;">
+                            <input type="radio" name="manualOptimization" value="single" checked onchange="calculate()">
+                            <span>Single tile size</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85em; font-weight: normal; cursor: pointer; flex: 1;">
+                            <input type="radio" name="manualOptimization" value="multiple" onchange="calculate()">
+                            <span>Multiple sizes (fill space)</span>
+                        </label>
+                    </div>
+                    <div id="multipleOptimizationOptions" style="display: none; margin-top: 8px;">
+                        <div style="display: flex; gap: 10px; margin-left: 8px;">
+                            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85em; font-weight: normal; cursor: pointer; flex: 1;">
+                                <input type="checkbox" id="preferLargerTiles" onchange="if(currentMode === 'manual') calculate()">
+                                <span>Prefer larger main tiles over edge fillers</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Tile Type:</label>
+                    <select id="tileType" onchange="if(selectedOption) updateSummary()">
+                        <option value="regular">Regular (3m4s per grid square)</option>
+                        <option value="lite">Lite (1m38s per grid square)</option>
+                    </select>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculate()">Calculate Layout</button>
+                
+                <div class="info-note">
+                    <strong>OpenGrid Specifications:</strong><br>
+                    • 28mm grid size (Gridfinity compatible)<br>
+                    • Regular tiles: 3m4s per grid square<br>
+                    • Lite tiles: 1m38s per grid square<br>
+                    • Uses Multiconnect connector system
+                </div>
+            </div>
+            
+            <div class="results-panel">
+                <h2>Layout Results:</h2>
+                
+                <div class="optimal-results" id="optimalResults">
+                    <h3>Recommended Tile Sizes (sorted by best coverage):</h3>
+                    <div id="optimalOptions">Click Calculate to see recommendations</div>
+                </div>
+                
+                <div class="summary-stats" id="summaryStats" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTiles">0</div>
+                        <div class="stat-label">Total Tiles</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="coverage">0%</div>
+                        <div class="stat-label">Coverage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="printTime">0h</div>
+                        <div class="stat-label">Est. Print Time</div>
+                    </div>
+                </div>
+                
+                <div class="grid-preview" id="gridPreview">
+                    <div class="no-results">Select a tile size to see preview</div>
+                </div>
+                
+                <div class="results-list" id="resultsList">
+                    <div class="no-results">Select a tile size to see parts list</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const printers = {
+            a1mini: { bed: 180 },
+            a1: { bed: 256 },
+            p1p: { bed: 256 },
+            p1s: { bed: 256 },
+            x1c: { bed: 256 },
+            custom: { bed: 999 }
+        };
+        
+        let allOptions = [];
+        let selectedOption = null;
+        let currentMode = 'auto';
+        const gridSize = 28;
+        let converterExpanded = false;
+        
+        // Unit converter
+        function toggleHelp() {
+            const modal = document.getElementById('helpModal');
+            modal.classList.toggle('active');
+            if (modal.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+        
+        function closeHelpIfClickedOutside(event) {
+            if (event.target.id === 'helpModal') {
+                toggleHelp();
+            }
+        }
+        
+        function toggleConverter() {
+            converterExpanded = !converterExpanded;
+            document.getElementById('converterInputs').classList.toggle('expanded', converterExpanded);
+            document.querySelector('.converter-toggle').classList.toggle('expanded', converterExpanded);
+        }
+        
+        document.getElementById('fractionInput').addEventListener('input', function() {
+            const decimal = parseFraction(this.value.trim());
+            document.getElementById('decimalOutput').value = decimal ? decimal.toFixed(4) : '';
+            if (decimal) {
+                document.getElementById('inchInput').value = decimal.toFixed(4);
+                document.getElementById('mmOutput').value = (decimal * 25.4).toFixed(2);
+            }
+        });
+        
+        document.getElementById('inchInput').addEventListener('input', function() {
+            const inches = parseFloat(this.value) || 0;
+            document.getElementById('mmOutput').value = (inches * 25.4).toFixed(2);
+        });
+        
+        document.getElementById('mmInput').addEventListener('input', function() {
+            const mm = parseFloat(this.value) || 0;
+            document.getElementById('inchOutput').value = (mm / 25.4).toFixed(4);
+        });
+        
+        // Show/hide prefer larger tiles option based on optimization selection
+        document.querySelectorAll('input[name="manualOptimization"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const multipleOptDiv = document.getElementById('multipleOptimizationOptions');
+                if (this.value === 'multiple') {
+                    multipleOptDiv.style.display = 'block';
+                } else {
+                    multipleOptDiv.style.display = 'none';
+                }
+            });
+        });
+        
+        function parseFraction(input) {
+            if (!input) return 0;
+            input = input.replace(/["']/g, '').trim();
+            
+            const mixedMatch = input.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+            if (mixedMatch) {
+                return parseInt(mixedMatch[1]) + (parseInt(mixedMatch[2]) / parseInt(mixedMatch[3]));
+            }
+            
+            const fractionMatch = input.match(/^(\d+)\/(\d+)$/);
+            if (fractionMatch) {
+                return parseInt(fractionMatch[1]) / parseInt(fractionMatch[2]);
+            }
+            
+            const decimal = parseFloat(input);
+            return isNaN(decimal) ? 0 : decimal;
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('autoMode').classList.toggle('active', mode === 'auto');
+            document.getElementById('manualMode').classList.toggle('active', mode === 'manual');
+            document.getElementById('autoFilters').style.display = mode === 'auto' ? 'block' : 'none';
+            document.getElementById('manualTileSize').style.display = mode === 'manual' ? 'block' : 'none';
+            document.getElementById('optimalResults').style.display = mode === 'auto' ? 'block' : 'none';
+            
+            // Validate manual tile sizes when switching to manual mode
+            if (mode === 'manual') {
+                validateManualTileSize();
+            }
+        }
+        
+        function validateManualTileSize() {
+            const printer = document.getElementById('printer').value;
+            
+            // Get bed size
+            let bedSize;
+            if (printer === 'custom') {
+                const customW = parseFloat(document.getElementById('customBedWidth').value) || 300;
+                const customH = parseFloat(document.getElementById('customBedHeight').value) || 300;
+                bedSize = Math.min(customW, customH);
+            } else {
+                bedSize = printers[printer].bed;
+            }
+            
+            const maxBed = bedSize - 4;
+            const maxPossible = Math.floor(maxBed / gridSize);
+            
+            const tileWidthInput = document.getElementById('tileWidth');
+            const tileHeightInput = document.getElementById('tileHeight');
+            
+            let w = parseInt(tileWidthInput.value) || 6;
+            let h = parseInt(tileHeightInput.value) || 6;
+            
+            // Enforce bed size limits
+            if (w > maxPossible) w = maxPossible;
+            if (h > maxPossible) h = maxPossible;
+            
+            // Check if tile fits on bed
+            const tileW = w * gridSize;
+            const tileH = h * gridSize;
+            
+            if (tileW > maxBed || tileH > maxBed) {
+                // Tile doesn't fit, reduce to max possible
+                if (tileW > maxBed) w = maxPossible;
+                if (tileH > maxBed) h = maxPossible;
+            }
+            
+            tileWidthInput.value = w;
+            tileHeightInput.value = h;
+            tileWidthInput.setAttribute('max', maxPossible);
+            tileHeightInput.setAttribute('max', maxPossible);
+            
+            // Check if using full bed and show warning
+            checkFullBedUsage(w, h, maxBed);
+        }
+        
+        function checkFullBedUsage(width, height, maxBed) {
+            const tileW = width * gridSize;
+            const tileH = height * gridSize;
+            const threshold = maxBed - 10; // Within 10mm of max is "full bed"
+            
+            const usingFullBed = (tileW >= threshold || tileH >= threshold);
+            
+            let warningDiv = document.getElementById('fullBedWarning');
+            
+            if (usingFullBed) {
+                if (!warningDiv) {
+                    warningDiv = document.createElement('div');
+                    warningDiv.id = 'fullBedWarning';
+                    warningDiv.style.cssText = 'background: #7c2d12; border: 1px solid #ea580c; border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.8em; color: #fed7aa; line-height: 1.4;';
+                    warningDiv.innerHTML = '<strong>⚠ Full Bed Usage:</strong> This tile uses the full print bed. <a href="#" onclick="toggleHelp(); scrollToFullBedTips(); return false;" style="color: #fbbf24; text-decoration: underline;">See tips</a> for optimal results.';
+                    document.getElementById('manualTileSize').appendChild(warningDiv);
+                }
+            } else {
+                if (warningDiv) {
+                    warningDiv.remove();
+                }
+            }
+        }
+        
+        function checkFullBedUsageAuto(maxGrids, maxBed) {
+            const tileSize = maxGrids * gridSize;
+            const threshold = maxBed - 10; // Within 10mm of max is "full bed"
+            
+            const usingFullBed = (tileSize >= threshold);
+            
+            let warningDiv = document.getElementById('fullBedWarningAuto');
+            
+            if (usingFullBed) {
+                if (!warningDiv) {
+                    warningDiv = document.createElement('div');
+                    warningDiv.id = 'fullBedWarningAuto';
+                    warningDiv.style.cssText = 'background: #7c2d12; border: 1px solid #ea580c; border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.8em; color: #fed7aa; line-height: 1.4;';
+                    warningDiv.innerHTML = '<strong>⚠ Full Bed Usage:</strong> Max range uses the full print bed. <a href="#" onclick="toggleHelp(); scrollToFullBedTips(); return false;" style="color: #fbbf24; text-decoration: underline;">See tips</a> for optimal results.';
+                    document.getElementById('autoFilters').appendChild(warningDiv);
+                }
+            } else {
+                if (warningDiv) {
+                    warningDiv.remove();
+                }
+            }
+        }
+        
+        function scrollToFullBedTips() {
+            setTimeout(() => {
+                const tipsSection = document.getElementById('fullBedTips');
+                if (tipsSection) {
+                    tipsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+        
+        function convertUnits() {
+            // Initialize lastUnits if it's undefined (first time)
+            if (typeof window.lastUnits === 'undefined') {
+                window.lastUnits = 'mm'; // Match the default selected option
+            }
+            
+            const newUnits = document.getElementById('units').value;
+            const wallWidthInput = document.getElementById('wallWidth');
+            const wallHeightInput = document.getElementById('wallHeight');
+            
+            const currentWidth = parseFloat(wallWidthInput.value) || 0;
+            const currentHeight = parseFloat(wallHeightInput.value) || 0;
+            
+            // If fields are empty, just update lastUnits
+            if (currentWidth === 0 && currentHeight === 0) {
+                window.lastUnits = newUnits;
+                return;
+            }
+            
+            // If this is the same unit as before, do nothing
+            if (window.lastUnits === newUnits) {
+                return;
+            }
+            
+            // Convert from old units to new units
+            if (window.lastUnits === 'mm' && newUnits === 'inch') {
+                wallWidthInput.value = (currentWidth / 25.4).toFixed(2);
+                wallHeightInput.value = (currentHeight / 25.4).toFixed(2);
+            } else if (window.lastUnits === 'inch' && newUnits === 'mm') {
+                wallWidthInput.value = (currentWidth * 25.4).toFixed(1);
+                wallHeightInput.value = (currentHeight * 25.4).toFixed(1);
+            }
+            
+            // Update lastUnits AFTER conversion
+            window.lastUnits = newUnits;
+            
+            // Recalculate if we have valid dimensions
+            if (currentWidth > 0 && currentHeight > 0) {
+                calculate();
+            }
+        }
+        
+        function toggleCustomBed() {
+            const printer = document.getElementById('printer').value;
+            const customBedDiv = document.getElementById('customBedSize');
+            
+            if (printer === 'custom') {
+                customBedDiv.style.display = 'block';
+            } else {
+                customBedDiv.style.display = 'none';
+            }
+            
+            updateGridLimits(true);
+            
+            // Also validate manual tile sizes if in manual mode
+            if (currentMode === 'manual') {
+                validateManualTileSize();
+            }
+        }
+        
+        function updateGridLimits(autoAdjustMax = false) {
+            const printer = document.getElementById('printer').value;
+            
+            // Get bed size
+            let bedSize;
+            if (printer === 'custom') {
+                const customW = parseFloat(document.getElementById('customBedWidth').value) || 300;
+                const customH = parseFloat(document.getElementById('customBedHeight').value) || 300;
+                bedSize = Math.min(customW, customH);
+            } else {
+                bedSize = printers[printer].bed;
+            }
+            
+            const maxBed = bedSize - 4;
+            const maxPossible = Math.floor(maxBed / gridSize);
+            
+            const minInput = document.getElementById('minGrids');
+            const maxInput = document.getElementById('maxGrids');
+            
+            // Update max attributes based on printer bed size
+            minInput.setAttribute('max', maxPossible);
+            maxInput.setAttribute('max', maxPossible);
+            
+            let minVal = parseInt(minInput.value) || 2;
+            let maxVal = parseInt(maxInput.value) || maxPossible;
+            
+            // Auto-adjust maxVal when bed size changes to a larger bed
+            if (autoAdjustMax) {
+                maxVal = maxPossible;
+            }
+            
+            // Enforce constraints
+            if (minVal > maxPossible) minVal = maxPossible;
+            if (maxVal > maxPossible) maxVal = maxPossible;
+            if (minVal > maxVal) minVal = maxVal;
+            
+            // Apply 9×9 rule: if one dimension is 9, other can't be 9
+            if (minVal === 9 && maxPossible >= 9) {
+                maxInput.setAttribute('max', 8);
+                if (maxVal === 9) maxVal = 8;
+            }
+            if (maxVal === 9 && maxPossible >= 9) {
+                minInput.setAttribute('max', 8);
+                if (minVal === 9) minVal = 8;
+            }
+            
+            minInput.value = minVal;
+            maxInput.value = maxVal;
+            
+            // Check for full bed usage in auto mode
+            if (currentMode === 'auto') {
+                checkFullBedUsageAuto(maxVal, maxBed);
+            }
+        }
+        
+        function calculate() {
+            const wallW = parseFloat(document.getElementById('wallWidth').value);
+            const wallH = parseFloat(document.getElementById('wallHeight').value);
+            const units = document.getElementById('units').value;
+            const printer = document.getElementById('printer').value;
+            
+            // Update grid limits based on current printer
+            updateGridLimits();
+            
+            let wallWmm = wallW;
+            let wallHmm = wallH;
+            if (units === 'inch') {
+                wallWmm = wallW * 25.4;
+                wallHmm = wallH * 25.4;
+            }
+            
+            // Get bed size - use custom if selected
+            let bedSize;
+            if (printer === 'custom') {
+                const customW = parseFloat(document.getElementById('customBedWidth').value) || 300;
+                const customH = parseFloat(document.getElementById('customBedHeight').value) || 300;
+                bedSize = Math.min(customW, customH); // Use the smaller dimension
+            } else {
+                bedSize = printers[printer].bed;
+            }
+            
+            const maxBed = bedSize - 4;
+            
+            if (currentMode === 'auto') {
+                const optimization = document.querySelector('input[name="optimization"]:checked').value;
+                allOptions = [];
+                
+                const minGrids = parseInt(document.getElementById('minGrids').value) || 2;
+                const maxGrids = parseInt(document.getElementById('maxGrids').value) || 9;
+                
+                if (optimization === 'single') {
+                    // Single tile size - same as current behavior
+                    for (let w = minGrids; w <= maxGrids; w++) {
+                        for (let h = minGrids; h <= maxGrids; h++) {
+                            if (w === 9 && h === 9) continue;
+                            
+                            const tileW = w * gridSize;
+                            const tileH = h * gridSize;
+                            
+                            const fitsNormal = (tileW <= maxBed && tileH <= maxBed);
+                            if (!fitsNormal) continue;
+                            
+                            const numX = Math.floor(wallWmm / tileW);
+                            const numY = Math.floor(wallHmm / tileH);
+                            
+                            if (numX > 0 && numY > 0) {
+                                const coveredArea = numX * tileW * numY * tileH;
+                                const totalArea = wallWmm * wallHmm;
+                                const coverage = (coveredArea / totalArea) * 100;
+                                
+                                allOptions.push({
+                                    width: w,
+                                    height: h,
+                                    numX: numX,
+                                    numY: numY,
+                                    totalTiles: numX * numY,
+                                    coverage: coverage,
+                                    waste: 100 - coverage,
+                                    singleSize: true
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    // Multiple sizes - fill with edge tiles to maximize coverage
+                    for (let w = minGrids; w <= maxGrids; w++) {
+                        for (let h = minGrids; h <= maxGrids; h++) {
+                            if (w === 9 && h === 9) continue;
+                            
+                            const tileW = w * gridSize;
+                            const tileH = h * gridSize;
+                            
+                            const fitsNormal = (tileW <= maxBed && tileH <= maxBed);
+                            if (!fitsNormal) continue;
+                            
+                            const numX = Math.floor(wallWmm / tileW);
+                            const numY = Math.floor(wallHmm / tileH);
+                            
+                            if (numX > 0 && numY > 0) {
+                                // Calculate main tiles coverage
+                                let totalTiles = numX * numY;
+                                let coveredWidthMm = numX * tileW;
+                                let coveredHeightMm = numY * tileH;
+                                
+                                // Calculate remaining space
+                                const remainingX = wallWmm - coveredWidthMm;
+                                const remainingY = wallHmm - coveredHeightMm;
+                                
+                                // Calculate edge tiles - fill as much as possible within printer limits
+                                let edgeGridsX = 0;
+                                let edgeTilesX = 0;
+                                if (remainingX >= gridSize) {
+                                    edgeGridsX = Math.floor(remainingX / gridSize);
+                                    // Check if edge tile fits on printer bed
+                                    const edgeTileXWidth = edgeGridsX * gridSize;
+                                    if (edgeTileXWidth <= maxBed && tileH <= maxBed) {
+                                        edgeTilesX = numY;
+                                        totalTiles += edgeTilesX;
+                                        coveredWidthMm += edgeGridsX * gridSize;
+                                    } else {
+                                        edgeGridsX = 0; // Edge tile too big for bed
+                                    }
+                                }
+                                
+                                let edgeGridsY = 0;
+                                let edgeTilesY = 0;
+                                if (remainingY >= gridSize) {
+                                    edgeGridsY = Math.floor(remainingY / gridSize);
+                                    // Check if edge tile fits on printer bed
+                                    const edgeTileYHeight = edgeGridsY * gridSize;
+                                    if (tileW <= maxBed && edgeTileYHeight <= maxBed) {
+                                        edgeTilesY = numX;
+                                        totalTiles += edgeTilesY;
+                                        coveredHeightMm += edgeGridsY * gridSize;
+                                    } else {
+                                        edgeGridsY = 0; // Edge tile too big for bed
+                                    }
+                                }
+                                
+                                // Add corner tile if both edges exist
+                                let hasCorner = false;
+                                let cornerCoveredWidth = coveredWidthMm;
+                                let cornerCoveredHeight = coveredHeightMm;
+                                if (edgeGridsX > 0 && edgeGridsY > 0) {
+                                    const cornerWidth = edgeGridsX * gridSize;
+                                    const cornerHeight = edgeGridsY * gridSize;
+                                    if (cornerWidth <= maxBed && cornerHeight <= maxBed) {
+                                        totalTiles += 1;
+                                        hasCorner = true;
+                                        // Corner doesn't add to width/height since it's already counted in the edge tiles overlap
+                                    }
+                                }
+                                
+                                // Calculate actual covered area (width * height of covered rectangle)
+                                const coveredArea = coveredWidthMm * coveredHeightMm;
+                                const totalArea = wallWmm * wallHmm;
+                                const coverage = (coveredArea / totalArea) * 100;
+                                
+                                allOptions.push({
+                                    width: w,
+                                    height: h,
+                                    numX: numX,
+                                    numY: numY,
+                                    edgeX: edgeGridsX,
+                                    edgeY: edgeGridsY,
+                                    edgeTilesX: edgeTilesX,
+                                    edgeTilesY: edgeTilesY,
+                                    hasCorner: hasCorner,
+                                    totalTiles: totalTiles,
+                                    coveredWidthMm: coveredWidthMm,
+                                    coveredHeightMm: coveredHeightMm,
+                                    coverage: coverage,
+                                    waste: 100 - coverage,
+                                    singleSize: false
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                allOptions.sort((a, b) => {
+                    // First sort by coverage (higher is better)
+                    if (Math.abs(b.coverage - a.coverage) > 0.01) {
+                        return b.coverage - a.coverage;
+                    }
+                    // Second, strongly prefer avoiding 1×N tiles (they're problematic to mount)
+                    const aHas1xN = (a.edgeX === 1 || a.edgeY === 1);
+                    const bHas1xN = (b.edgeX === 1 || b.edgeY === 1);
+                    if (aHas1xN !== bHas1xN) {
+                        return aHas1xN ? 1 : -1; // Strongly prefer option without 1×N
+                    }
+                    // Third, prefer options with fewer edge tiles (simpler)
+                    const aHasEdges = (a.edgeTilesX || 0) + (a.edgeTilesY || 0) + (a.hasCorner ? 1 : 0);
+                    const bHasEdges = (b.edgeTilesX || 0) + (b.edgeTilesY || 0) + (b.hasCorner ? 1 : 0);
+                    if (aHasEdges !== bHasEdges) {
+                        return aHasEdges - bHasEdges; // Fewer edge tiles is better
+                    }
+                    // Fourth, prefer larger main tile sizes
+                    const aMainSize = a.width * a.height;
+                    const bMainSize = b.width * b.height;
+                    return bMainSize - aMainSize;
+                });
+                
+                displayOptions();
+            } else {
+                // Manual mode
+                const manualOptimization = document.querySelector('input[name="manualOptimization"]:checked').value;
+                const preferLarger = document.getElementById('preferLargerTiles')?.checked || false;
+                
+                let w = parseInt(document.getElementById('tileWidth').value);
+                let h = parseInt(document.getElementById('tileHeight').value);
+                
+                if (manualOptimization === 'single') {
+                    // Single tile size only
+                    const tileW = w * gridSize;
+                    const tileH = h * gridSize;
+                    const numX = Math.floor(wallWmm / tileW);
+                    const numY = Math.floor(wallHmm / tileH);
+                    
+                    const coveredArea = numX * tileW * numY * tileH;
+                    const totalArea = wallWmm * wallHmm;
+                    const coverage = (coveredArea / totalArea) * 100;
+                    
+                    selectedOption = {
+                        width: w,
+                        height: h,
+                        numX: numX,
+                        numY: numY,
+                        totalTiles: numX * numY,
+                        coverage: coverage,
+                        waste: 100 - coverage,
+                        singleSize: true
+                    };
+                } else {
+                    // Multiple sizes - fill with edge tiles
+                    const tileW = w * gridSize;
+                    const tileH = h * gridSize;
+                    let numX = Math.floor(wallWmm / tileW);
+                    let numY = Math.floor(wallHmm / tileH);
+                    
+                    let coveredWidthMm = numX * tileW;
+                    let coveredHeightMm = numY * tileH;
+                    
+                    const remainingX = wallWmm - coveredWidthMm;
+                    const remainingY = wallHmm - coveredHeightMm;
+                    
+                    // Initialize to full grid
+                    let mainTilesX = numX;
+                    let mainTilesY = numY;
+                    let edgeGridsX = 0;
+                    let edgeTilesX = 0;
+                    let edgeWidthAdjusted = w;
+                    let edgeGridsY = 0;
+                    let edgeTilesY = 0;
+                    let edgeHeightAdjusted = h;
+                    
+                    // Handle X direction (right edge)
+                    if (remainingX >= gridSize) {
+                        const remainderGridsX = Math.floor(remainingX / gridSize);
+                        
+                        if (preferLarger && numX > 0 && remainderGridsX > 0) {
+                            // Try to replace rightmost column with enlarged tiles
+                            const enlargedWidth = w + remainderGridsX;
+                            const enlargedTileW = enlargedWidth * gridSize;
+                            
+                            // Check if enlarged tile fits on bed and within wall space
+                            if (enlargedTileW <= maxBed && enlargedTileW <= wallWmm && tileH <= maxBed) {
+                                // Check if replacing makes sense (we need at least one main column left)
+                                const spaceNeededForEnlarged = enlargedWidth * gridSize;
+                                const spaceForMain = wallWmm - spaceNeededForEnlarged;
+                                const mainColumnsLeft = Math.floor(spaceForMain / tileW);
+                                
+                                if (mainColumnsLeft > 0 && (mainColumnsLeft * tileW + spaceNeededForEnlarged) <= wallWmm) {
+                                    // Replace works - use enlarged column
+                                    mainTilesX = mainColumnsLeft;
+                                    edgeWidthAdjusted = enlargedWidth;
+                                    edgeGridsX = enlargedWidth;
+                                    edgeTilesX = numY;
+                                    coveredWidthMm = (mainTilesX * tileW) + (enlargedWidth * gridSize);
+                                } else {
+                                    // Can't replace - use regular edge fillers and keep mainTilesX = numX
+                                    mainTilesX = numX;
+                                    edgeGridsX = remainderGridsX;
+                                    const edgeTileXWidth = edgeGridsX * gridSize;
+                                    if (edgeTileXWidth <= maxBed && tileH <= maxBed) {
+                                        edgeTilesX = numY;
+                                        coveredWidthMm = (numX * tileW) + (edgeGridsX * gridSize);
+                                    }
+                                }
+                            } else {
+                                // Can't enlarge - use regular edge fillers and keep mainTilesX = numX
+                                mainTilesX = numX;
+                                edgeGridsX = remainderGridsX;
+                                const edgeTileXWidth = edgeGridsX * gridSize;
+                                if (edgeTileXWidth <= maxBed && tileH <= maxBed) {
+                                    edgeTilesX = numY;
+                                    coveredWidthMm = (numX * tileW) + (edgeGridsX * gridSize);
+                                }
+                            }
+                        } else {
+                            // Normal mode - use small edge fillers and keep mainTilesX = numX
+                            mainTilesX = numX;
+                            edgeGridsX = remainderGridsX;
+                            const edgeTileXWidth = edgeGridsX * gridSize;
+                            if (edgeTileXWidth <= maxBed && tileH <= maxBed) {
+                                edgeTilesX = numY;
+                                coveredWidthMm = (numX * tileW) + (edgeGridsX * gridSize);
+                            }
+                        }
+                    }
+                    
+                    // Handle Y direction (bottom edge)
+                    if (remainingY >= gridSize) {
+                        const remainderGridsY = Math.floor(remainingY / gridSize);
+                        
+                        if (preferLarger && numY > 0 && remainderGridsY > 0) {
+                            // Try to replace bottom row with enlarged tiles
+                            const enlargedHeight = h + remainderGridsY;
+                            const enlargedTileH = enlargedHeight * gridSize;
+                            
+                            // Check if enlarged tile fits on bed and within wall space
+                            if (tileW <= maxBed && enlargedTileH <= maxBed && enlargedTileH <= wallHmm) {
+                                // Check if replacing makes sense (we need at least one main row left)
+                                const spaceNeededForEnlarged = enlargedHeight * gridSize;
+                                const spaceForMain = wallHmm - spaceNeededForEnlarged;
+                                const mainRowsLeft = Math.floor(spaceForMain / tileH);
+                                
+                                if (mainRowsLeft > 0 && (mainRowsLeft * tileH + spaceNeededForEnlarged) <= wallHmm) {
+                                    // Replace works - use enlarged row
+                                    mainTilesY = mainRowsLeft;
+                                    edgeHeightAdjusted = enlargedHeight;
+                                    edgeGridsY = enlargedHeight;
+                                    // Use mainTilesX which was calculated in X direction
+                                    edgeTilesY = mainTilesX;
+                                    coveredHeightMm = (mainTilesY * tileH) + (enlargedHeight * gridSize);
+                                    
+                                    // IMPORTANT: If we have edge column tiles, reduce their count to match main rows
+                                    // The enlarged bottom row edge tile will be the corner
+                                    if (edgeTilesX > 0) {
+                                        edgeTilesX = mainTilesY; // Only create edge tiles for main rows
+                                    }
+                                } else {
+                                    // Can't replace - use regular edge fillers and keep mainTilesY = numY
+                                    mainTilesY = numY;
+                                    edgeGridsY = remainderGridsY;
+                                    const edgeTileYHeight = edgeGridsY * gridSize;
+                                    if (tileW <= maxBed && edgeTileYHeight <= maxBed) {
+                                        edgeTilesY = mainTilesX;
+                                        coveredHeightMm = (numY * tileH) + (edgeGridsY * gridSize);
+                                    }
+                                }
+                            } else {
+                                // Can't enlarge - use regular edge fillers and keep mainTilesY = numY
+                                mainTilesY = numY;
+                                edgeGridsY = remainderGridsY;
+                                const edgeTileYHeight = edgeGridsY * gridSize;
+                                if (tileW <= maxBed && edgeTileYHeight <= maxBed) {
+                                    edgeTilesY = mainTilesX;
+                                    coveredHeightMm = (numY * tileH) + (edgeGridsY * gridSize);
+                                }
+                            }
+                        } else {
+                            // Normal mode - use small edge fillers and keep mainTilesY = numY
+                            mainTilesY = numY;
+                            edgeGridsY = remainderGridsY;
+                            const edgeTileYHeight = edgeGridsY * gridSize;
+                            if (tileW <= maxBed && edgeTileYHeight <= maxBed) {
+                                edgeTilesY = mainTilesX;
+                                coveredHeightMm = (numY * tileH) + (edgeGridsY * gridSize);
+                            }
+                        }
+                    }
+                    
+                    // Calculate main tiles
+                    const mainTiles = mainTilesX * mainTilesY;
+                    let totalTiles = mainTiles + edgeTilesX + edgeTilesY;
+                    
+                    // Handle corner
+                    let hasCorner = false;
+                    let cornerWidth = edgeGridsX;
+                    let cornerHeight = edgeGridsY;
+                    
+                    if (edgeGridsX > 0 && edgeGridsY > 0) {
+                        // Determine corner size based on whether edges were enlarged
+                        if (preferLarger) {
+                            // If X was enlarged, use adjusted width, otherwise use small filler width
+                            cornerWidth = (edgeTilesX > 0 && mainTilesX < numX) ? edgeWidthAdjusted : edgeGridsX;
+                            // If Y was enlarged, use adjusted height, otherwise use small filler height  
+                            cornerHeight = (edgeTilesY > 0 && mainTilesY < numY) ? edgeHeightAdjusted : edgeGridsY;
+                        }
+                        
+                        const cornerWidthMm = cornerWidth * gridSize;
+                        const cornerHeightMm = cornerHeight * gridSize;
+                        if (cornerWidthMm <= maxBed && cornerHeightMm <= maxBed) {
+                            totalTiles += 1;
+                            hasCorner = true;
+                        }
+                    }
+                    
+                    const coveredArea = coveredWidthMm * coveredHeightMm;
+                    const totalArea = wallWmm * wallHmm;
+                    const coverage = (coveredArea / totalArea) * 100;
+                    
+                    selectedOption = {
+                        width: w,
+                        height: h,
+                        numX: mainTilesX,
+                        numY: mainTilesY,
+                        edgeX: (preferLarger && edgeTilesX > 0 && mainTilesX < numX) ? edgeWidthAdjusted : edgeGridsX,
+                        edgeY: (preferLarger && edgeTilesY > 0 && mainTilesY < numY) ? edgeHeightAdjusted : edgeGridsY,
+                        edgeTilesX: edgeTilesX,
+                        edgeTilesY: edgeTilesY,
+                        hasCorner: hasCorner,
+                        cornerWidth: cornerWidth,
+                        cornerHeight: cornerHeight,
+                        totalTiles: totalTiles,
+                        coveredWidthMm: coveredWidthMm,
+                        coveredHeightMm: coveredHeightMm,
+                        coverage: coverage,
+                        waste: 100 - coverage,
+                        singleSize: false
+                    };
+                }
+                
+                updateSummary();
+                updatePreview();
+                updatePartsList();
+                
+                // Check for full bed usage in manual mode
+                if (currentMode === 'manual') {
+                    checkFullBedUsage(w, h, maxBed);
+                }
+            }
+        }
+        
+        function displayOptions() {
+            const container = document.getElementById('optimalOptions');
+            let html = '';
+            
+            allOptions.slice(0, 10).forEach((opt, index) => {
+                html += `
+                <div class="optimal-option ${index === 0 ? 'selected' : ''}" 
+                     onclick="selectOption(${index})">
+                    <div class="option-details">
+                        <div class="option-size">${opt.width}×${opt.height} grids (${opt.numX}×${opt.numY} tiles)</div>
+                        <div class="option-stats">${opt.coverage.toFixed(1)}% Coverage</div>
+                    </div>
+                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Always select the first (most optimal) option
+            if (allOptions.length > 0) {
+                selectOption(0);
+            }
+        }
+        
+        function selectOption(index) {
+            selectedOption = allOptions[index];
+            
+            document.querySelectorAll('.optimal-option').forEach((el, i) => {
+                el.classList.toggle('selected', i === index);
+            });
+            
+            updateSummary();
+            updatePreview();
+            updatePartsList();
+        }
+        
+        function updateSummary() {
+            const tileType = document.getElementById('tileType').value;
+            
+            // Calculate total grids across all tiles
+            let totalGrids = 0;
+            
+            if (selectedOption.singleSize) {
+                // Single size: all tiles are the same
+                totalGrids = selectedOption.totalTiles * selectedOption.width * selectedOption.height;
+            } else {
+                // Multiple sizes: main tiles + edge tiles + corner
+                const mainTiles = selectedOption.numX * selectedOption.numY;
+                totalGrids = mainTiles * selectedOption.width * selectedOption.height;
+                
+                if (selectedOption.edgeTilesX > 0) {
+                    totalGrids += selectedOption.edgeTilesX * selectedOption.edgeX * selectedOption.height;
+                }
+                if (selectedOption.edgeTilesY > 0) {
+                    totalGrids += selectedOption.edgeTilesY * selectedOption.width * selectedOption.edgeY;
+                }
+                if (selectedOption.hasCorner) {
+                    totalGrids += selectedOption.edgeX * selectedOption.edgeY;
+                }
+            }
+            
+            // Calculate time: 98 seconds per grid for Lite, 184 seconds for Regular (1.88x Lite)
+            const secondsPerGrid = tileType === 'lite' ? 98 : 184;
+            const totalSeconds = totalGrids * secondsPerGrid;
+            const totalHours = totalSeconds / 3600;
+            
+            document.getElementById('totalTiles').textContent = selectedOption.totalTiles;
+            document.getElementById('coverage').textContent = selectedOption.coverage.toFixed(1) + '%';
+            document.getElementById('printTime').textContent = totalHours.toFixed(1) + 'h';
+            document.getElementById('summaryStats').style.display = 'grid';
+        }
+        
+        function updatePreview() {
+            const wallW = parseFloat(document.getElementById('wallWidth').value);
+            const wallH = parseFloat(document.getElementById('wallHeight').value);
+            const units = document.getElementById('units').value;
+            
+            let wallWmm = wallW;
+            let wallHmm = wallH;
+            if (units === 'inch') {
+                wallWmm = wallW * 25.4;
+                wallHmm = wallH * 25.4;
+            }
+            
+            const tileWmm = selectedOption.width * gridSize;
+            const tileHmm = selectedOption.height * gridSize;
+            
+            const maxDisplay = 400;
+            const ratio = wallWmm / wallHmm;
+            let displayW, displayH;
+            
+            if (ratio > 1) {
+                displayW = maxDisplay;
+                displayH = maxDisplay / ratio;
+            } else {
+                displayH = maxDisplay;
+                displayW = maxDisplay * ratio;
+            }
+            
+            const pixelsPerMmX = displayW / wallWmm;
+            const pixelsPerMmY = displayH / wallHmm;
+            
+            let html = '<div style="position: relative;">';
+            html += `<div style="color: #7d8590; font-size: 0.9em; margin-bottom: 10px; text-align: center;">Surface: ${wallW} × ${wallH} ${units}</div>`;
+            html += `<div style="position: relative; border: 2px solid #7d8590; border-radius: 4px; width: ${displayW}px; height: ${displayH}px; background: #161b22; margin: 0 auto;">`;
+            
+            for (let y = 0; y < selectedOption.numY; y++) {
+                for (let x = 0; x < selectedOption.numX; x++) {
+                    const left = x * tileWmm * pixelsPerMmX;
+                    const top = y * tileHmm * pixelsPerMmY;
+                    const width = tileWmm * pixelsPerMmX;
+                    const height = tileHmm * pixelsPerMmY;
+                    
+                    html += `<div style="position: absolute; left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background: #7c3aed; border: 1px solid #a855f7; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7em; font-weight: 600;">${selectedOption.width}×${selectedOption.height}</div>`;
+                }
+            }
+            
+            const unusedW = wallWmm - (selectedOption.coveredWidthMm || selectedOption.numX * tileWmm);
+            const unusedH = wallHmm - (selectedOption.coveredHeightMm || selectedOption.numY * tileHmm);
+            
+            // Show edge tiles if in multiple sizes mode
+            if (!selectedOption.singleSize && selectedOption.edgeX > 0) {
+                const edgeW = selectedOption.edgeX * gridSize;
+                for (let y = 0; y < selectedOption.numY; y++) {
+                    const left = selectedOption.numX * tileWmm * pixelsPerMmX;
+                    const top = y * tileHmm * pixelsPerMmY;
+                    const width = edgeW * pixelsPerMmX;
+                    const height = tileHmm * pixelsPerMmY;
+                    
+                    html += `<div style="position: absolute; left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background: #10b981; border: 1px solid #34d399; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.65em; font-weight: 600;">${selectedOption.edgeX}×${selectedOption.height}</div>`;
+                }
+            }
+            
+            if (!selectedOption.singleSize && selectedOption.edgeY > 0) {
+                const edgeH = selectedOption.edgeY * gridSize;
+                for (let x = 0; x < selectedOption.numX; x++) {
+                    const left = x * tileWmm * pixelsPerMmX;
+                    const top = selectedOption.numY * tileHmm * pixelsPerMmY;
+                    const width = tileWmm * pixelsPerMmX;
+                    const height = edgeH * pixelsPerMmY;
+                    
+                    html += `<div style="position: absolute; left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background: #f59e0b; border: 1px solid #fbbf24; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.65em; font-weight: 600;">${selectedOption.width}×${selectedOption.edgeY}</div>`;
+                }
+            }
+            
+            if (!selectedOption.singleSize && selectedOption.hasCorner) {
+                const cornerW = selectedOption.cornerWidth || selectedOption.edgeX;
+                const cornerH = selectedOption.cornerHeight || selectedOption.edgeY;
+                const edgeW = cornerW * gridSize;
+                const edgeH = cornerH * gridSize;
+                const left = selectedOption.numX * tileWmm * pixelsPerMmX;
+                const top = selectedOption.numY * tileHmm * pixelsPerMmY;
+                const width = edgeW * pixelsPerMmX;
+                const height = edgeH * pixelsPerMmY;
+                
+                html += `<div style="position: absolute; left: ${left}px; top: ${top}px; width: ${width}px; height: ${height}px; background: #ef4444; border: 1px solid #f87171; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6em; font-weight: 600;">${cornerW}×${cornerH}</div>`;
+            }
+            
+            if (unusedW > 0) {
+                html += `<div style="position: absolute; right: 0; top: 0; width: ${unusedW * pixelsPerMmX}px; height: 100%; background: rgba(239, 68, 68, 0.2); border: 1px dashed #ef4444; border-left: none;"></div>`;
+            }
+            
+            if (unusedH > 0) {
+                html += `<div style="position: absolute; bottom: 0; left: 0; width: ${selectedOption.numX * tileWmm * pixelsPerMmX}px; height: ${unusedH * pixelsPerMmY}px; background: rgba(239, 68, 68, 0.2); border: 1px dashed #ef4444; border-top: none;"></div>`;
+            }
+            
+            html += '</div>';
+            
+            // Calculate used dimensions - use coveredWidthMm/coveredHeightMm if available (multiple sizes mode)
+            const usedW = selectedOption.coveredWidthMm || (selectedOption.numX * tileWmm);
+            const usedH = selectedOption.coveredHeightMm || (selectedOption.numY * tileHmm);
+            
+            // Convert to display units
+            let usedWDisplay, usedHDisplay;
+            if (units === 'inch') {
+                usedWDisplay = (usedW / 25.4).toFixed(2);
+                usedHDisplay = (usedH / 25.4).toFixed(2);
+            } else {
+                usedWDisplay = usedW.toFixed(1);
+                usedHDisplay = usedH.toFixed(1);
+            }
+            
+            html += `<div style="color: #7d8590; font-size: 0.7em; margin-top: 8px; text-align: center;">Used: ${usedWDisplay} × ${usedHDisplay} ${units}</div>`;
+            html += '</div>';
+            
+            document.getElementById('gridPreview').innerHTML = html;
+        }
+        
+        function updatePartsList() {
+            const tileType = document.getElementById('tileType').value;
+            const typeName = tileType === 'lite' ? 'Lite' : 'Regular';
+            
+            let html = '';
+            
+            if (selectedOption.singleSize) {
+                // Single size mode - just main tiles
+                html += `
+                <div class="result-item">
+                    <span class="item-name">${selectedOption.width}×${selectedOption.height} OpenGrid ${typeName} Tile</span>
+                    <span class="item-quantity">${selectedOption.totalTiles}</span>
+                </div>
+                `;
+            } else {
+                // Multiple sizes mode - main tiles + edge tiles
+                const mainTiles = selectedOption.numX * selectedOption.numY;
+                html += `
+                <div class="result-item">
+                    <span class="item-name">${selectedOption.width}×${selectedOption.height} OpenGrid ${typeName} Tile</span>
+                    <span class="item-quantity">${mainTiles}</span>
+                </div>
+                `;
+                
+                // Right edge tiles
+                if (selectedOption.edgeX > 0 && selectedOption.edgeTilesX > 0) {
+                    html += `
+                    <div class="result-item">
+                        <span class="item-name">${selectedOption.edgeX}×${selectedOption.height} OpenGrid ${typeName} Edge Tile</span>
+                        <span class="item-quantity">${selectedOption.edgeTilesX}</span>
+                    </div>
+                    `;
+                }
+                
+                // Bottom edge tiles
+                if (selectedOption.edgeY > 0 && selectedOption.edgeTilesY > 0) {
+                    html += `
+                    <div class="result-item">
+                        <span class="item-name">${selectedOption.width}×${selectedOption.edgeY} OpenGrid ${typeName} Edge Tile</span>
+                        <span class="item-quantity">${selectedOption.edgeTilesY}</span>
+                    </div>
+                    `;
+                }
+                
+                // Corner tile
+                if (selectedOption.hasCorner) {
+                    const cornerW = selectedOption.cornerWidth || selectedOption.edgeX;
+                    const cornerH = selectedOption.cornerHeight || selectedOption.edgeY;
+                    html += `
+                    <div class="result-item">
+                        <span class="item-name">${cornerW}×${cornerH} OpenGrid ${typeName} Corner Tile</span>
+                        <span class="item-quantity">1</span>
+                    </div>
+                    `;
+                }
+            }
+            
+            html += `
+            <div class="result-item">
+                <span class="item-name">Multiconnect Connectors</span>
+                <span class="item-quantity">${selectedOption.totalTiles * 2}</span>
+            </div>
+            `;
+            
+            document.getElementById('resultsList').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
