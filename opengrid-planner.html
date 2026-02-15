@@ -629,7 +629,7 @@
                 
                 <h3>4. Select Tile Type</h3>
                 <ul>
-                    <li><strong>Regular</strong>: Stronger, takes 3m4s per grid</li>
+                    <li><strong>Full</strong>: Stronger, takes 3m4s per grid</li>
                     <li><strong>Lite</strong>: Faster printing (1m38s per grid), uses less material</li>
                 </ul>
                 
@@ -781,7 +781,7 @@
                 <div class="control-group">
                     <label>Tile Type:</label>
                     <select id="tileType" onchange="if(selectedOption) updateSummary()">
-                        <option value="regular">Regular (3m4s per grid square)</option>
+                        <option value="regular">Full (3m4s per grid square)</option>
                         <option value="lite">Lite (1m38s per grid square)</option>
                     </select>
                 </div>
@@ -791,7 +791,7 @@
                 <div class="info-note">
                     <strong>OpenGrid Specifications:</strong><br>
                     • 28mm grid size (Gridfinity compatible)<br>
-                    • Regular tiles: 3m4s per grid square<br>
+                    • Full tiles: 3m4s per grid square<br>
                     • Lite tiles: 1m38s per grid square<br>
                     • Uses Multiconnect connector system
                 </div>
@@ -1769,7 +1769,7 @@
         
         function updatePartsList() {
             const tileType = document.getElementById('tileType').value;
-            const typeName = tileType === 'lite' ? 'Lite' : 'Regular';
+            const typeName = tileType === 'lite' ? 'Lite' : 'Full';
             
             let html = '';
             
