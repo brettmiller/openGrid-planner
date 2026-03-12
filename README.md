@@ -1,6 +1,6 @@
 # OpenGrid Planner
 
-A web-based planning tool for designing OpenGrid layouts with precision. Optimized for BambuLab 3D printers and compatible with the Gridfinity ecosystem (28mm grid system).
+A web-based planning tool for designing OpenGrid layouts with precision. With defaults for BambuLab 3D printers.
 
 *Initially inspired by and built upon [this Claude artifact](https://claude.ai/public/artifacts/6e5392ba-b387-4203-a8f1-577336c0b0b8), significantly expanded with additional features and optimization modes.*
 
@@ -14,6 +14,8 @@ A web-based planning tool for designing OpenGrid layouts with precision. Optimiz
 
 - **Optimization Strategies**
   - **Single tile size**: All tiles identical - simpler to print, moderate coverage
+    - "Multiple sizes(fill space)" option to file remaining space with other tile sized 
+    - "Multiple sizes" has aditional option to prefer enlarging edge row/column tiles to fit 
   - **Multiple sizes (fill space)**: Uses edge and corner tiles for maximum coverage
 
 - **BambuLab Printer Presets**
