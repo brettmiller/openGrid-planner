@@ -14,9 +14,8 @@ A web-based planning tool for designing OpenGrid layouts with precision. With de
 
 - **Optimization Strategies**
   - **Single tile size**: All tiles identical - simpler to print, moderate coverage
-    - "Multiple sizes(fill space)" option to fill remaining space with other tile sized 
-    - "Multiple sizes" has aditional option to prefer enlarging edge row/column tiles to fit 
-  - **Multiple sizes (fill space)**: Uses edge and corner tiles for maximum coverage
+  - **Multiple sizes (fill space)**: Uses different size edge and corner tiles for maximum coverage
+  - **Multiple sizes (in manual size layout mode)**: has aditional option to prefer enlarging edge row/column tiles to fit over uing smaller edge tiles 
 
 - **BambuLab Printer Presets**
   - A1 Mini (180×180×180mm)
